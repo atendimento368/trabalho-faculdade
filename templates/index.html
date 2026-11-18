@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Gastos</title>
+<style>
+  :root {
+    --bg: #f4f5fb; --card: #ffffff; --txt: #1e2235; --mut: #7a809b;
+    --brand: #5b5ff0; --brand2: #8b5cf6; --line: #eceef6;
+    --ok: #10b981; --erro: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    background: var(--bg); color: var(--txt); padding: 32px 20px 60px;
+  }
+  .container { max-width: 1680px; margin: 0 auto; }
+
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p { color: var(--mut); font-size: .9rem; margin-top: 2px; }
+
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    border: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .9rem;
+    padding: 10px 18px; border-radius: 12px; transition: .15s; text-decoration: none; display: inline-block;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff; box-shadow: 0 6px 16px rgba(91,95,240,.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(91,95,240,.4); }
+  .btn-soft { background: #fff; color: var(--brand); border: 1px solid var(--line); }
+  .btn-soft:hover { background: #f0f1ff; }
+
+  .alerta { padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: .92rem; font-weight: 500; }
+  .alerta.ok { background: #d1fae5; color: #065f46; }
+  .alerta.erro { background: #fee2e2; color: #991b1b; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--brand), var(--brand2)); color: #fff;
+    border-radius: 22px; padding: 28px 32px; margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;
+    box-shadow: 0 14px 34px rgba(91,95,240,.3);
+  }
+  .hero small { opacity: .85; font-size: .85rem; letter-spacing: .5px; text-transform: uppercase; }
+  .hero .valor { font-size: 2.6rem; font-weight: 800; margin-top: 4px; }
+  .hero .qtd { background: rgba(255,255,255,.18); padding: 8px 16px; border-radius: 999px; font-size: .9rem; font-weight: 600; }
+
+ .grid { display: grid; grid-template-columns: 330px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 1200px) {
+  .grid { grid-template-columns: 330px 1fr; }
+  .resumo-col { grid-column: 1 / -1; }
+}
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(30,34,53,.05); margin-bottom: 24px; }
+  .card h2 { font-size: 1.05rem; margin-bottom: 18px; }
+
+  label { display: block; font-size: .8rem; font-weight: 600; color: var(--mut); margin: 14px 0 6px; }
+  input, select {
+    width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px;
+    border: 1.5px solid var(--line); background: #fafbff; color: var(--txt); outline: none; transition: .15s;
+  }
+  input:focus, select:focus { border-color: var(--brand); background: #fff; box-shadow: 0 0 0 4px rgba(91,95,240,.12); }
+  form .btn-primary { width: 100%; margin-top: 20px; padding: 13px; }
+
+  .barra-item { margin-bottom: 16px; }
+  .barra-topo { display: flex; justify-content: space-between; font-size: .88rem; margin-bottom: 6px; }
+  .barra-topo span:last-child { font-weight: 600; }
+  .trilho { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .trilho div { height: 100%; border-radius: 99px; }
+
+  .c0 { --c: #f59e0b; } .c1 { --c: #3b82f6; } .c2 { --c: #8b5cf6; }
+  .c3 { --c: #ec4899; } .c4 { --c: #10b981; } .c5 { --c: #94a3b8; }
+  .trilho div { background: var(--c); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .5px; color: var(--mut); padding: 0 10px 12px; }
+  td { padding: 14px 10px; border-top: 1px solid var(--line); font-size: .92rem; }
+  td.dir, th.dir { text-align: right; }
+  td.valor { font-weight: 700; white-space: nowrap; }
+  td.data { color: var(--mut); white-space: nowrap; }
+  .tag {
+    display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: .78rem; font-weight: 600;
+    color: var(--c); background: color-mix(in srgb, var(--c) 14%, white);
+  }
+  .excluir {
+    background: none; border: none; cursor: pointer; color: #b4b9cf; font-size: 1.1rem;
+    padding: 4px 8px; border-radius: 8px; transition: .15s;
+  }
+  .excluir:hover { color: var(--erro); background: #fee2e2; }
+
+  .vazio { text-align: center; color: var(--mut); padding: 36px 0 12px; }
+  .vazio .icone { font-size: 2.4rem; margin-bottom: 8px; }
+  .tabela-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>💸 Controle de Gastos</h1>
+      <p>Registre e acompanhe seus gastos do dia a dia</p>
+    </div>
+    <div class="acoes">
+      <form action="/relatorio" method="post">
+        <button class="btn btn-soft" type="submit">📄 Gerar relatório</button>
+      </form>
+      {% if tem_relatorio %}
+      <a class="btn btn-soft" href="/baixar-relatorio">⬇ Baixar .txt</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if msg %}
+  <div class="alerta {{ tipo }}">{{ msg }}</div>
+  {% endif %}
+
+  <section class="hero">
+    <div>
+      <small>Total gasto</small>
+      <div class="valor">{{ total }}</div>
+    </div>
+    <div class="qtd">{{ quantidade }} lançamento{{ '' if quantidade == 1 else 's' }}</div>
+  </section>
+
+  <div class="grid">
+    <aside>
+      <div class="card">
+        <h2>Novo gasto</h2>
+        <form action="/adicionar" method="post">
+          <label for="descricao">Descrição</label>
+          <input id="descricao" name="descricao" placeholder="Ex.: Almoço" autocomplete="off">
+
+          <label for="categoria">Categoria</label>
+          <select id="categoria" name="categoria" required>
+            <option value="" disabled selected>Selecione...</option>
+            {% for cat in categorias %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+
+          <label for="valor">Valor (R$)</label>
+          <input id="valor" name="valor" placeholder="25,90" inputmode="decimal" required autocomplete="off">
+
+          <button class="btn btn-primary" type="submit">+ Adicionar gasto</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Resumo por categoria</h2>
+        {% for item in resumo %}
+        <div class="barra-item c{{ item.cor }}">
+          <div class="barra-topo"><span>{{ item.categoria }}</span><span>{{ item.total }}</span></div>
+          <div class="trilho"><div data-pct="{{ item.pct }}"></div></div>
+        </div>
+        {% else %}
+        <p style="color: var(--mut); font-size: .9rem;">Sem dados ainda.</p>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <main>
+      <div class="card">
+        <h2>Últimos gastos</h2>
+        {% if gastos %}
+        <div class="tabela-scroll">
+          <table>
+            <thead>
+              <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="dir">Valor</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for g in gastos %}
+              <tr>
+                <td class="data">{{ g.data }}</td>
+                <td>{{ g.descricao }}</td>
+                <td><span class="tag c{{ g.cor }}">{{ g.categoria }}</span></td>
+                <td class="valor dir">{{ g.valor }}</td>
+                <td class="dir">
+                  <form action="/remover/{{ g.indice }}" method="post"
+                        onsubmit="return confirm('Remover este gasto?')">
+                    <button class="excluir" type="submit" title="Remover">✕</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="vazio">
+          <div class="icone">🧾</div>
+          <p>Nenhum gasto cadastrado ainda.<br>Use o formulário ao lado para começar.</p>
+        </div>
+        {% endif %}
+      </div>
+    </main>
+  </div>
+
+</div>
+<script>
+  document.querySelectorAll(".trilho div").forEach(function (barra) {
+    barra.style.width = barra.dataset.pct + "%";
+  });
+</script>
+</body>
+</html>
