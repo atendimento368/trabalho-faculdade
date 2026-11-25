@@ -151,18 +151,17 @@
 
   .grid { 
     display: grid; 
-    grid-template-columns: 330px 1fr; 
-    gap: 24px; 
-    align-items: start; 
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
   }
 
-@media (max-width: 1200px) {
-  .grid { grid-template-columns: 330px 1fr; }
-  .resumo-col { grid-column: 1 / -1; }
-}
+  .grid > * {
+    min-width: 0;
+  }
 
-@media (max-width: 860px) { 
-  .grid { grid-template-columns: 1fr; } 
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
 }
 
   .card { background: var(--card); 
@@ -334,9 +333,18 @@
     margin-bottom: 8px; 
   }
   
-  .tabela-scroll { 
-    overflow-x: auto; 
+  .tabela-scroll {
+    overflow-x: auto;
   }
+
+@media (max-width: 560px) {
+  body { padding: 20px 14px 40px; }
+  .hero { padding: 22px 24px; }
+  .hero .valor { font-size: 2.1rem; }
+  .card { padding: 20px 16px; }
+  th.data, td.data { display: none; }
+  th, td { padding-left: 6px; padding-right: 6px; }
+}
 
 </style>
 </head>
@@ -413,7 +421,7 @@
         <div class="tabela-scroll">
           <table>
             <thead>
-              <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="dir">Valor</th><th></th></tr>
+              <tr><th class="data">Data</th><th>Descrição</th><th>Categoria</th><th class="dir">Valor</th><th></th></tr>
             </thead>
             <tbody>
               {% for g in gastos %}
